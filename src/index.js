@@ -53,7 +53,7 @@ var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeigh
 var player = new Player({ camera, world })
 window.player = player
 player.position.x = 2
-player.position.y = 4
+player.position.y = 8
 player.position.z = 2
 scene.add(player)
 

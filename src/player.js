@@ -10,7 +10,7 @@ export default class Player extends Entity {
     //
 
     this.cameraObject = new THREE.Object3D()
-    this.cameraObject.position.y = 1
+    this.cameraObject.position.y = 3
     this.cameraObject.add(camera)
   	this.add(this.cameraObject)
 
@@ -22,7 +22,7 @@ export default class Player extends Entity {
     this.pointLight = new THREE.PointLight(0xFFFFFF);
     // set its position
     // this.pointLight.position.x = 10;
-    this.pointLight.position.y = 1;
+    this.pointLight.position.y = 3;
     // this.pointLight.position.z = 130;
     // add to the scene
     this.add(this.pointLight);
