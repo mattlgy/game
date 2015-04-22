@@ -1,0 +1,17 @@
+{
+  "name": "game",
+  "version": "0.0.1",
+  "description": "Game",
+  "main": "game.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matt Liegey <mtliegey@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "babelify": "^6.0.2",
+    "browserify": "^9.0.8",
+    "three": "^0.70.0",
+    "watchify": "^3.1.0"
+  }
+}
