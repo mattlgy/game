@@ -126,7 +126,7 @@ export default class Player extends Entity {
     this.velocity.x -= this.velocity.x * 10.0 * frame.delta
 		this.velocity.y -= this.velocity.y * 10.0 * frame.delta
 		this.velocity.z -= this.velocity.z * 10.0 * frame.delta
-		this.velocity.y -= 9.8 * 1 * frame.delta // 100.0 = mass
+		this.velocity.y -= 2.3 // 100.0 = mass
 
     var dir = new THREE.Vector3()
 
@@ -136,7 +136,7 @@ export default class Player extends Entity {
 		if (this.movingLeft) dir.x -= 1
 		if (this.movingRight) dir.x += 1
 
-    if (this.movingUp) dir.y += 1
+    if (this.movingUp && this.isRelativeBlockSolid({ y: -0.5})) this.velocity.y += 40
 		// if (this.movingDown) dir.y -= 1
 
     dir.normalize().applyEuler(this.rotation).multiplyScalar(this.speed)
@@ -147,23 +147,6 @@ export default class Player extends Entity {
     if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0
     if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0
 
-    // this.collisions()
-
-    if (this.world.getBlock(this.position.x, this.position.y + this.velocity.y * frame.delta, this.position.z)) {
-      this.velocity.y = 0
-    }
-    this.position.y = this.position.y + this.velocity.y * frame.delta
-
-    if (this.world.getBlock(this.position.x + this.velocity.x * frame.delta, this.position.y, this.position.z)) {
-      this.velocity.x = 0
-    }
-    this.position.x = this.position.x + this.velocity.x * frame.delta
-
-    if (this.world.getBlock(this.position.x, this.position.y, this.position.z + this.velocity.z * frame.delta)) {
-      this.velocity.z = 0
-    }
-    this.position.z = this.position.z + this.velocity.z * frame.delta
-
-    // this.position.add(this.velocity.clone().multiplyScalar(frame.delta))
+    this.move(frame)
   }
 }

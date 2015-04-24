@@ -20,18 +20,34 @@ export default class Entity extends THREE.Object3D {
     this.caster = new THREE.Raycaster()
   }
 
-  collisions () {
-    if (this.world.getBlock(this.position.x, this.position.y + this.velocity.y, this.position.z)) {
+  isRelativeBlockSolid(d) {
+    var dx = d.x || 0
+    var dy = d.y || 0
+    var dz = d.z || 0
+    return !!this.world.getBlock(this.position.x + dx, this.position.y + dy, this.position.z + dz)
+  }
+
+  move (frame) {
+    if (this.isRelativeBlockSolid({ y: this.velocity.y * frame.delta})) {
       this.velocity.y = 0
     }
+    this.position.y = this.position.y + this.velocity.y * frame.delta
 
-    if (this.world.getBlock(this.position.x + this.velocity.x, this.position.y, this.position.z)) {
-      this.velocity.x = 0
+    if (this.isRelativeBlockSolid({ x: this.velocity.x * frame.delta})) {
+      if (!this.world.getBlock(this.position.x + this.velocity.x * frame.delta, this.position.y + 1, this.position.z))
+        this.position.y = this.position.y + 1
+      else
+        this.velocity.x = 0
     }
+    this.position.x = this.position.x + this.velocity.x * frame.delta
 
-    if (this.world.getBlock(this.position.x, this.position.y, this.position.z + this.velocity.z)) {
-      this.velocity.z = 0
+    if (this.isRelativeBlockSolid({ z: this.velocity.z * frame.delta})) {
+      if (!this.world.getBlock(this.position.x, this.position.y + 1, this.position.z + this.velocity.z * frame.delta))
+        this.position.y = this.position.y + 1
+      else
+        this.velocity.z = 0
     }
+    this.position.z = this.position.z + this.velocity.z * frame.delta
   }
 }
 
