@@ -2,16 +2,23 @@
   "name": "game",
   "version": "0.0.1",
   "description": "Game",
-  "main": "game.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc ./client/game.ts --out ./assets/game.js",
+    "watch": "tsc ./client/game.ts --out ./assets/game.js --watch"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattliegey/game.git"
+  },
+  "keywords": [
+    "game"
+  ],
   "author": "Matt Liegey <mtliegey@gmail.com>",
   "license": "ISC",
-  "dependencies": {
-    "babelify": "^6.0.2",
-    "browserify": "^9.0.8",
-    "three": "^0.70.0",
-    "watchify": "^3.1.0"
-  }
+  "bugs": {
+    "url": "https://github.com/mattliegey/game/issues"
+  },
+  "homepage": "https://github.com/mattliegey/game"
 }

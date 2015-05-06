@@ -32,7 +32,7 @@ func main() {
 	fmt.Println(reflect.TypeOf(WorldData))
 	fmt.Println(WorldData)
 
-	fs := http.FileServer(http.Dir("../assets"))
+	fs := http.FileServer(http.Dir("../"))
 	http.Handle("/", fs)
 
 	http.Handle("/echo", websocket.Handler(EchoServer))

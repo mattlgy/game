@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "es5"
+    },
+    "compileOnSave": false,
+    "filesGlob": [
+        "./**/*.ts",
+        "!./node_modules/**/*.ts"
+    ],
+    "files": [
+        "./blocks/base.ts",
+        "./blocks/index.d.ts",
+        "./entities/base.ts",
+        "./entities/index.d.ts",
+        "./entities/player.ts",
+        "./game.ts",
+        "./game/chunk.ts",
+        "./game/frame.ts",
+        "./game/get-pointer-lock.ts",
+        "./game/index.d.ts",
+        "./game/world-data.ts",
+        "./game/world.ts",
+        "./typings/threejs/three.d.ts",
+        "./typings/tsd.d.ts"
+    ]
+}
