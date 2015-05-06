@@ -10,20 +10,20 @@ var Game;
             this.chunks[i] = new Game.Chunk({ x: x, z: z, data: data });
             return this.chunks[i];
         };
-        World.prototype.get = function (x, z) {
+        World.prototype.getChunk = function (x, z) {
             var i = (x << shiftAmount) + z;
             return this.chunks[i];
         };
-        World.prototype.getChunk = function (x, z) {
+        World.prototype.getChunkWorldCoords = function (x, z) {
             x = Math.floor(x / Game.CHUNK_SIZE_X);
             z = Math.floor(z / Game.CHUNK_SIZE_Z);
-            return this.get(x, z);
+            return this.getChunk(x, z);
         };
         World.prototype.getBlock = function (x, y, z) {
-            var chunk = this.getChunk(x, z);
+            var chunk = this.getChunkWorldCoords(x, z);
             if (!chunk)
                 return null;
-            return chunk.getWorldBlock(x, y, z);
+            return chunk.getBlockWorldCoords(x, y, z);
         };
         return World;
     })();

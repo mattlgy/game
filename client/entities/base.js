@@ -23,24 +23,29 @@ var Entities;
             this.velocity = new THREE.Vector3();
         }
         Base.prototype.canExistHere = function (p) {
-            return !!this.world.getBlock(p.x, p.y, p.z);
+            return !this.world.getBlock(p.x, p.y, p.z);
         };
         Base.prototype.canExistRelavtive = function (d) {
-            return !!this.canExistHere(this.position.add(d));
+            return this.canExistHere(this.position.clone().add(d));
+        };
+        Base.prototype.getChunk = function () {
+            var x = Math.floor(this.position.x / Game.CHUNK_SIZE_X);
+            var z = Math.floor(this.position.z / Game.CHUNK_SIZE_Z);
+            return this.world.getChunk(x, z);
         };
         Base.prototype.move = function (frame) {
-            if (this.canExistRelavtive(new THREE.Vector3(0, this.velocity.y * frame.delta, 0))) {
+            if (!this.canExistRelavtive(new THREE.Vector3(0, this.velocity.y * frame.delta, 0))) {
                 this.velocity.y = 0;
             }
             this.position.y = this.position.y + this.velocity.y * frame.delta;
-            if (this.canExistRelavtive(new THREE.Vector3(this.velocity.x * frame.delta, 0, 0))) {
+            if (!this.canExistRelavtive(new THREE.Vector3(this.velocity.x * frame.delta, 0, 0))) {
                 if (this.canExistRelavtive(new THREE.Vector3(this.velocity.x * frame.delta, 1, 0)))
                     this.position.y = this.position.y + 1;
                 else
                     this.velocity.x = 0;
             }
             this.position.x = this.position.x + this.velocity.x * frame.delta;
-            if (this.canExistRelavtive(new THREE.Vector3(0, 0, this.velocity.z * frame.delta))) {
+            if (!this.canExistRelavtive(new THREE.Vector3(0, 0, this.velocity.z * frame.delta))) {
                 if (this.canExistRelavtive(new THREE.Vector3(0, 1, this.velocity.z * frame.delta)))
                     this.position.y = this.position.y + 1;
                 else

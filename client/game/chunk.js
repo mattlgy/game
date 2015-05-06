@@ -23,24 +23,27 @@ var Game;
             this.position.x = x * Game.CHUNK_SIZE_X;
             this.position.z = z * Game.CHUNK_SIZE_Z;
         }
-        Chunk.prototype.getLocalBlock = function (x, y, z) {
+        Chunk.prototype.getBlock = function (x, y, z) {
             x = Math.floor(x);
             z = Math.floor(z);
             y = Math.floor(y);
             var i = z + (x * Game.CHUNK_SIZE_X) + (y * Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Z);
-            return this.data[i] != undefined ? this.data[i] : null;
+            return this.blocks[i];
         };
-        Chunk.prototype.getWorldBlock = function (x, y, z) {
-            return this.getLocalBlock(x % Game.CHUNK_SIZE_X, y, z % Game.CHUNK_SIZE_Z);
+        Chunk.prototype.getBlockWorldCoords = function (x, y, z) {
+            return this.getBlock(x % Game.CHUNK_SIZE_X, y, z % Game.CHUNK_SIZE_Z);
         };
         Chunk.prototype.render = function () {
             var x = 0;
             var y = 0;
             var z = 0;
             var i = 0;
+            var b;
             while (i < Game.BLOCKS_PER_CHUNK) {
                 if (this.data[i]) {
-                    this.add(new Blocks.Base({ x: x, y: y, z: z }));
+                    b = new Blocks.Base({ x: x, y: y, z: z });
+                    this.add(b);
+                    this.blocks[i] = b;
                 }
                 i++;
                 z++;

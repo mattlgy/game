@@ -15,6 +15,7 @@ var Game;
         function Chunk(_a) {
             var data = _a.data, x = _a.x, z = _a.z;
             _super.call(this);
+            this.blocks = [];
             this.x = 0;
             this.z = 0;
             this.data = data;
@@ -23,26 +24,29 @@ var Game;
             this.position.x = x * Game.CHUNK_SIZE_X;
             this.position.z = z * Game.CHUNK_SIZE_Z;
         }
-        Chunk.prototype.getLocalBlock = function (x, y, z) {
+        Chunk.prototype.getBlock = function (x, y, z) {
             x = Math.floor(x);
             z = Math.floor(z);
             y = Math.floor(y);
             // var i = z + x * CHUNK_SIZE_X + y * CHUNK_SIZE_Y
             // var i = z + CHUNK_SIZE_X * (x + CHUNK_SIZE_Y * y)
             var i = z + (x * Game.CHUNK_SIZE_X) + (y * Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Z);
-            return this.data[i] != undefined ? this.data[i] : null;
+            return this.blocks[i]; // this.data[i] != undefined ? this.data[i] : null
         };
-        Chunk.prototype.getWorldBlock = function (x, y, z) {
-            return this.getLocalBlock(x % Game.CHUNK_SIZE_X, y, z % Game.CHUNK_SIZE_Z);
+        Chunk.prototype.getBlockWorldCoords = function (x, y, z) {
+            return this.getBlock(x % Game.CHUNK_SIZE_X, y, z % Game.CHUNK_SIZE_Z);
         };
         Chunk.prototype.render = function () {
             var x = 0;
             var y = 0;
             var z = 0;
             var i = 0;
+            var b;
             while (i < Game.BLOCKS_PER_CHUNK) {
                 if (this.data[i]) {
-                    this.add(new Blocks.Base({ x: x, y: y, z: z }));
+                    b = new Blocks.Base({ x: x, y: y, z: z });
+                    this.add(b);
+                    this.blocks[i] = b;
                 }
                 i++;
                 z++;
@@ -132,25 +136,28 @@ var Game;
         function World() {
             this.chunks = {};
         }
+        World.prototype.hashChunkCoords = function (x, z) {
+            return x + ',' + z;
+        };
         World.prototype.newChunk = function (x, z, data) {
-            var i = (x << shiftAmount) + z;
+            var i = this.hashChunkCoords(x, z); // (x << shiftAmount) + z
             this.chunks[i] = new Game.Chunk({ x: x, z: z, data: data });
             return this.chunks[i];
         };
-        World.prototype.get = function (x, z) {
-            var i = (x << shiftAmount) + z;
+        World.prototype.getChunk = function (x, z) {
+            var i = this.hashChunkCoords(x, z); // (x << shiftAmount) + z
             return this.chunks[i];
         };
-        World.prototype.getChunk = function (x, z) {
+        World.prototype.getChunkWorldCoords = function (x, z) {
             x = Math.floor(x / Game.CHUNK_SIZE_X);
             z = Math.floor(z / Game.CHUNK_SIZE_Z);
-            return this.get(x, z);
+            return this.getChunk(x, z);
         };
         World.prototype.getBlock = function (x, y, z) {
-            var chunk = this.getChunk(x, z);
+            var chunk = this.getChunkWorldCoords(x, z);
             if (!chunk)
                 return null;
-            return chunk.getWorldBlock(x, y, z);
+            return chunk.getBlockWorldCoords(x, y, z);
         };
         return World;
     })();
@@ -510,10 +517,16 @@ var Entities;
             this.velocity = new THREE.Vector3();
         }
         Base.prototype.canExistHere = function (p) {
-            return !this.world.getBlock(p.x, p.y, p.z);
+            var b = this.world.getBlock(p.x, p.y, p.z);
+            return !b;
         };
         Base.prototype.canExistRelavtive = function (d) {
             return this.canExistHere(this.position.clone().add(d));
+        };
+        Base.prototype.getChunk = function () {
+            var x = Math.floor(this.position.x / Game.CHUNK_SIZE_X);
+            var z = Math.floor(this.position.z / Game.CHUNK_SIZE_Z);
+            return this.world.getChunk(x, z);
         };
         Base.prototype.move = function (frame) {
             if (!this.canExistRelavtive(new THREE.Vector3(0, this.velocity.y * frame.delta, 0))) {
@@ -741,167 +754,6 @@ var Entities;
     })(Entities.Base);
     Entities.Player = Player;
 })(Entities || (Entities = {}));
-/*
-export default class Player extends Entity {
-  constructor ({ camera, world }) {
-    super({ world })
-
-    //
-    // CAMERA
-    //
-
-    this.cameraObject = new THREE.Object3D()
-    this.cameraObject.position.y = 3
-    this.cameraObject.add(camera)
-    this.add(this.cameraObject)
-
-    //
-    // LIGHTING
-    //
-
-    // create a point light
-    this.pointLight = new THREE.PointLight(0xFFFFFF);
-    // set its position
-    // this.pointLight.position.x = 10;
-    this.pointLight.position.y = 3;
-    // this.pointLight.position.z = 130;
-    // add to the scene
-    this.add(this.pointLight);
-
-    //
-    // MOUSE
-    //
-
-    var PI_2 = Math.PI / 2
-    document.addEventListener('mousemove', (event) => {
-        var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0
-        var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0
-
-        this.rotation.y -= movementX * 0.002
-        this.cameraObject.rotation.x -= movementY * 0.002
-
-        this.cameraObject.rotation.x = Math.max(-PI_2, Math.min(PI_2, this.cameraObject.rotation.x))
-
-    }, false)
-
-    //
-    // Keyboard
-    //
-
-    this.movingForward = false
-        this.movingBackward = false
-        this.movingLeft = false
-        this.movingRight = false
-    this.movingUp = false
-    this.moviningDown = false
-
-        document.addEventListener('keydown', (event) => {
-            switch (event.keyCode) {
-                case 38: // up
-                case 87: // w
-                    this.movingForward = true
-                    break
-
-                case 37: // left
-                case 65: // a
-                    this.movingLeft = true
-          break
-
-                case 40: // down
-                case 83: // s
-                    this.movingBackward = true
-                    break
-
-                case 39: // right
-                case 68: // d
-                    this.movingRight = true
-                    break
-
-                case 32: // space
-                    this.movingUp = true
-                    break
-
-        case 16: // left shift
-                    this.movingDown = true
-                    break
-            }
-        }, false)
-
-
-      document.addEventListener('keyup', (event) => {
-      switch( event.keyCode ) {
-        case 38: // up
-        case 87: // w
-          this.movingForward = false
-          break
-
-        case 37: // left
-        case 65: // a
-          this.movingLeft = false
-          break
-
-        case 40: // down
-        case 83: // s
-          this.movingBackward = false
-          break
-
-        case 39: // right
-        case 68: // d
-          this.movingRight = false
-          break
-
-        case 32: // space
-          this.movingUp = false
-          break
-
-        case 16: // left shift
-          this.movingDown = false
-          break
-      }
-    }, false)
-  }
-
-  tick (frame) {
-    // console.log(this.position.x + ', ' + this.position.y + ', ' + this.position.z)
-
-    this.velocity.x -= this.velocity.x * 10.0 * frame.delta
-        this.velocity.y -= this.velocity.y * 10.0 * frame.delta
-        this.velocity.z -= this.velocity.z * 10.0 * frame.delta
-        this.velocity.y -= 2.3 // 100.0 = mass
-
-    var dir = new THREE.Vector3()
-
-    if (this.movingForward) dir.z -= 1
-        if (this.movingBackward) dir.z += 1
-
-        if (this.movingLeft) dir.x -= 1
-        if (this.movingRight) dir.x += 1
-
-    if (this.movingUp && this.isRelativeBlockSolid({ y: -0.5})) this.velocity.y += 40
-        // if (this.movingDown) dir.y -= 1
-
-    dir.normalize().applyEuler(this.rotation).multiplyScalar(this.speed)
-
-    this.velocity.add(dir)
-
-    if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0
-    if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0
-    if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0
-
-    this.move(frame)
-  }
-}
-*/
-// import THREE from 'three'
-// import Entity from './entity'
-// import Player from './player'
-// import Block from './block'
-// import World from './world'
-// import Chunk from './chunk'
-//
-// import getPointerLock from './get-pointer-lock'
-//
-// import worldData from './world-data'
 /// <reference path="./typings/tsd.d.ts"/>
 /// <reference path="./game/index"/>
 /// <reference path="./blocks/index"/>
@@ -925,6 +777,7 @@ var CHUNK_SIZE_X = 4;
 var CHUNK_SIZE_Y = 8;
 var CHUNK_SIZE_Z = 4;
 var BLOCKS_PER_CHUNK = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+var LOAD_RAIDUS = 3;
 var scene = new THREE.Scene();
 var world = new Game.World();
 // window.world = world
@@ -939,7 +792,32 @@ scene.add(player);
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-function getChunk(x, z) {
+function loadChunks() {
+    var c = player.getChunk();
+    var x = c.x;
+    var z = c.z;
+    var xMin = x - LOAD_RAIDUS;
+    var zMin = z - LOAD_RAIDUS;
+    var xMax = x + LOAD_RAIDUS;
+    var zMax = z + LOAD_RAIDUS;
+    x = xMin;
+    z = zMin;
+    while (x <= xMax) {
+        while (z <= zMax) {
+            c = world.getChunk(x, z);
+            if (!c) {
+                c = world.newChunk(x, z, getChunkData(x, z));
+                scene.add(c);
+                c.render();
+            }
+            z++;
+        }
+        z = zMin;
+        x++;
+    }
+}
+function getChunkData(x, z) {
+    return Game.worldData[5];
 }
 var i = 0;
 var x = 0;
@@ -961,6 +839,7 @@ function onFrame(timestamp) {
     var now = performance.now();
     var delta = (now - past) / 1000;
     player.tick(new Game.Frame({ delta: delta }));
+    loadChunks();
     renderer.render(scene, camera);
     past = now;
     requestAnimationFrame(onFrame);

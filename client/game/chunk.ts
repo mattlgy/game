@@ -8,6 +8,7 @@ module Game {
     export class Chunk extends THREE.Object3D {
 
         data: Int32Array
+        blocks: Array<Blocks.Base> = []
         x = 0
         z = 0
 
@@ -22,18 +23,18 @@ module Game {
             this.position.z = z * CHUNK_SIZE_Z
         }
 
-        getLocalBlock(x: number, y: number, z: number) {
+        getBlock(x: number, y: number, z: number): Blocks.Base {
             x = Math.floor(x)
             z = Math.floor(z)
             y = Math.floor(y)
             // var i = z + x * CHUNK_SIZE_X + y * CHUNK_SIZE_Y
             // var i = z + CHUNK_SIZE_X * (x + CHUNK_SIZE_Y * y)
             var i = z + (x * CHUNK_SIZE_X) + (y * CHUNK_SIZE_X * CHUNK_SIZE_Z)
-            return this.data[i] != undefined ? this.data[i] : null
+            return this.blocks[i] // this.data[i] != undefined ? this.data[i] : null
         }
 
-        getWorldBlock(x: number, y: number, z: number) {
-            return this.getLocalBlock(x % CHUNK_SIZE_X, y, z % CHUNK_SIZE_Z)
+        getBlockWorldCoords(x: number, y: number, z: number): Blocks.Base {
+            return this.getBlock(x % CHUNK_SIZE_X, y, z % CHUNK_SIZE_Z)
         }
 
         render() {
@@ -41,10 +42,13 @@ module Game {
             var y = 0
             var z = 0
             var i = 0
+            var b: Blocks.Base
 
             while (i < BLOCKS_PER_CHUNK) {
                 if (this.data[i]) {
-                    this.add(new Blocks.Base({ x, y, z }))
+                    b = new Blocks.Base({ x, y, z })
+                    this.add(b)
+                    this.blocks[i] = b
                 }
                 i++
 

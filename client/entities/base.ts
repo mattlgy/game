@@ -23,10 +23,18 @@ module Entities {
         }
 
         public canExistHere(p: THREE.Vector3): boolean {
-            return !this.world.getBlock(p.x, p.y, p.z)
+            var b = this.world.getBlock(p.x, p.y, p.z)
+            return !b
         }
         public canExistRelavtive(d: THREE.Vector3): boolean {
             return this.canExistHere(this.position.clone().add(d))
+        }
+
+        getChunk() {
+            var x = Math.floor(this.position.x / Game.CHUNK_SIZE_X)
+            var z = Math.floor(this.position.z / Game.CHUNK_SIZE_Z)
+
+            return this.world.getChunk(x, z)
         }
 
         public move(frame: Game.Frame) {
