@@ -618,7 +618,7 @@ var Entities;
             var camera = _a.camera, world = _a.world;
             _super.call(this, { world: world });
             this.size = 4;
-            this.speed = 0.5;
+            this.speed = 1.5;
             //
             // CAMERA
             //
@@ -711,7 +711,6 @@ var Entities;
             }, false);
         }
         Player.prototype.tick = function (frame) {
-            // console.log(this.position.x + ', ' + this.position.y + ', ' + this.position.z)
             this.velocity.x -= this.velocity.x * 10.0 * frame.delta;
             this.velocity.y -= this.velocity.y * 10.0 * frame.delta;
             this.velocity.z -= this.velocity.z * 10.0 * frame.delta;
@@ -725,16 +724,17 @@ var Entities;
                 dir.x -= 1;
             if (this.movingRight)
                 dir.x += 1;
-            console.log(dir.z);
-            if (this.movingUp && this.canExistRelavtive(new THREE.Vector3(0, -0.5, 0)))
+            if (this.movingUp && !this.canExistRelavtive(new THREE.Vector3(0, -0.5, 0)))
                 this.velocity.y += 40;
             // if (this.movingDown) dir.y -= 1
             dir.normalize().applyEuler(this.rotation).multiplyScalar(this.speed);
             this.velocity.add(dir);
-            // if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0
-            // if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0
-            // if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0
-            console.log(this.velocity.z);
+            if (Math.abs(this.velocity.x) < 0.01)
+                this.velocity.x = 0;
+            if (Math.abs(this.velocity.y) < 0.01)
+                this.velocity.y = 0;
+            if (Math.abs(this.velocity.z) < 0.01)
+                this.velocity.z = 0;
             this.move(frame);
         };
         return Player;

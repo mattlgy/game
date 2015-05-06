@@ -2,8 +2,8 @@
 module Entities {
     export class Player extends Base {
 
-        size =  4
-        speed = 0.5
+        size = 4
+        speed = 1.5
 
         cameraObject: THREE.Object3D
         pointLight: THREE.PointLight
@@ -134,8 +134,6 @@ module Entities {
         }
 
         tick(frame: Game.Frame) {
-            // console.log(this.position.x + ', ' + this.position.y + ', ' + this.position.z)
-
             this.velocity.x -= this.velocity.x * 10.0 * frame.delta
             this.velocity.y -= this.velocity.y * 10.0 * frame.delta
             this.velocity.z -= this.velocity.z * 10.0 * frame.delta
@@ -149,19 +147,16 @@ module Entities {
             if (this.movingLeft) dir.x -= 1
             if (this.movingRight) dir.x += 1
 
-            console.log(dir.z)
-            if (this.movingUp && this.canExistRelavtive(new THREE.Vector3(0, -0.5, 0))) this.velocity.y += 40
+            if (this.movingUp && !this.canExistRelavtive(new THREE.Vector3(0, -0.5, 0))) this.velocity.y += 40
             // if (this.movingDown) dir.y -= 1
 
             dir.normalize().applyEuler(this.rotation).multiplyScalar(this.speed)
 
             this.velocity.add(dir)
 
-            // if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0
-            // if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0
-            // if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0
-
-            console.log(this.velocity.z)
+            if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0
+            if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0
+            if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0
 
             this.move(frame)
         }
