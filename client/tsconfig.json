@@ -10,6 +10,8 @@
     "files": [
         "./blocks/base.ts",
         "./blocks/index.d.ts",
+        "./blocks/one.ts",
+        "./blocks/two.ts",
         "./entities/base.ts",
         "./entities/index.d.ts",
         "./entities/player.ts",

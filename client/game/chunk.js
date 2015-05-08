@@ -15,13 +15,14 @@ var Game;
         function Chunk(_a) {
             var data = _a.data, x = _a.x, z = _a.z;
             _super.call(this);
-            this.x = 0;
-            this.z = 0;
+            this.blocks = [];
+            this.matrixAutoUpdate = false;
             this.data = data;
             this.x = x;
             this.z = z;
             this.position.x = x * Game.CHUNK_SIZE_X;
             this.position.z = z * Game.CHUNK_SIZE_Z;
+            this.updateMatrix();
         }
         Chunk.prototype.getBlock = function (x, y, z) {
             x = Math.floor(x);
@@ -31,7 +32,11 @@ var Game;
             return this.blocks[i];
         };
         Chunk.prototype.getBlockWorldCoords = function (x, y, z) {
-            return this.getBlock(x % Game.CHUNK_SIZE_X, y, z % Game.CHUNK_SIZE_Z);
+            x = x % Game.CHUNK_SIZE_X;
+            x = (x + Game.CHUNK_SIZE_X) % Game.CHUNK_SIZE_X;
+            z = z % Game.CHUNK_SIZE_Z;
+            z = (z + Game.CHUNK_SIZE_Z) % Game.CHUNK_SIZE_Z;
+            return this.getBlock(x, y, z);
         };
         Chunk.prototype.render = function () {
             var x = 0;
@@ -39,10 +44,11 @@ var Game;
             var z = 0;
             var i = 0;
             var b;
+            this.geometry = new THREE.Geometry();
             while (i < Game.BLOCKS_PER_CHUNK) {
                 if (this.data[i]) {
                     b = new Blocks.Base({ x: x, y: y, z: z });
-                    this.add(b);
+                    this.geometry.merge(b.mesh.geometry);
                     this.blocks[i] = b;
                 }
                 i++;

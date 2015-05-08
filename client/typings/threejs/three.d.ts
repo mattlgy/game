@@ -926,7 +926,7 @@ declare module THREE {
          */
         computeBoundingSphere(): void;
 
-        merge( geometry: Geometry, matrix: Matrix, materialIndexOffset: number): void;
+        merge( geometry: Geometry, matrix?: Matrix, materialIndexOffset?: number): void;
 
         mergeMesh( mesh: Mesh ): void;
 

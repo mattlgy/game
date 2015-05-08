@@ -7,6 +7,7 @@ module Entities {
 
         cameraObject: THREE.Object3D
         pointLight: THREE.PointLight
+        light: THREE.Light
 
         movingForward: boolean
         movingBackward: boolean

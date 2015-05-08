@@ -23,7 +23,8 @@ var Entities;
             this.velocity = new THREE.Vector3();
         }
         Base.prototype.canExistHere = function (p) {
-            return !this.world.getBlock(p.x, p.y, p.z);
+            var b = this.world.getBlock(p.x, p.y, p.z);
+            return !b;
         };
         Base.prototype.canExistRelavtive = function (d) {
             return this.canExistHere(this.position.clone().add(d));

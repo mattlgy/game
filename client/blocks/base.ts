@@ -4,9 +4,12 @@ module Blocks {
         public static material = new THREE.MeshLambertMaterial({ color: 0x00ff00 })
 
         mesh: THREE.Mesh
+        solid: boolean = true
 
         constructor({ x, y, z }) {
             super()
+
+            this.matrixAutoUpdate = false
 
             this.mesh = this.makeMesh()
 
@@ -15,6 +18,8 @@ module Blocks {
             this.position.y = y
 
             this.add(this.mesh)
+
+            this.updateMatrix()
         }
 
         private makeMesh() {

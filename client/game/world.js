@@ -5,13 +5,16 @@ var Game;
         function World() {
             this.chunks = {};
         }
+        World.prototype.hashChunkCoords = function (x, z) {
+            return x + ',' + z;
+        };
         World.prototype.newChunk = function (x, z, data) {
-            var i = (x << shiftAmount) + z;
+            var i = this.hashChunkCoords(x, z);
             this.chunks[i] = new Game.Chunk({ x: x, z: z, data: data });
             return this.chunks[i];
         };
         World.prototype.getChunk = function (x, z) {
-            var i = (x << shiftAmount) + z;
+            var i = this.hashChunkCoords(x, z);
             return this.chunks[i];
         };
         World.prototype.getChunkWorldCoords = function (x, z) {

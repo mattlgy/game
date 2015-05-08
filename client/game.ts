@@ -5,20 +5,20 @@
 
 
 
-var websocket = new WebSocket('ws://localhost:12345/echo')
-websocket.binaryType = "arraybuffer"
-websocket.onopen = function(event) {
-    var buffer = new ArrayBuffer(8)
-    var arr = new Int32Array(buffer)
-    arr[0] = 13
-    arr[1] = 42
-    websocket.send(arr)
-}
-websocket.onmessage = function(event) {
-    console.log(event)
-    console.log(event.data)
-    console.log(new Int32Array(event.data))
-}
+// var websocket = new WebSocket('ws://localhost:12345/echo')
+// websocket.binaryType = "arraybuffer"
+// websocket.onopen = function(event) {
+//     var buffer = new ArrayBuffer(8)
+//     var arr = new Int32Array(buffer)
+//     arr[0] = 13
+//     arr[1] = 42
+//     websocket.send(arr)
+// }
+// websocket.onmessage = function(event) {
+//     console.log(event)
+//     console.log(event.data)
+//     console.log(new Int32Array(event.data))
+// }
 
 Game.getPointerLock()
 
@@ -26,7 +26,7 @@ const CHUNK_SIZE_X = 4
 const CHUNK_SIZE_Y = 8
 const CHUNK_SIZE_Z = 4
 const BLOCKS_PER_CHUNK = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z
-const LOAD_RAIDUS = 3
+const LOAD_RAIDUS = 15
 
 var scene = new THREE.Scene()
 var world = new Game.World()
@@ -44,8 +44,6 @@ scene.add(player)
 var renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
-
-
 
 function loadChunks() {
     var c = player.getChunk()
@@ -66,7 +64,7 @@ function loadChunks() {
             if (!c) {
                 c = world.newChunk(x, z, getChunkData(x, z))
                 scene.add(c)
-                c.render()
+                c.build()
             }
             z++
         }
@@ -76,7 +74,7 @@ function loadChunks() {
 }
 
 function getChunkData(x, z) {
-    return Game.worldData[5]
+    return Game.worldData[9]
 }
 
 var i = 0
@@ -85,8 +83,8 @@ var z = 0
 var chunk
 while (i < 9) {
     chunk = world.newChunk(x, z, Game.worldData[i])
+    chunk.build()
     scene.add(chunk)
-    chunk.render()
 
     i++
     x++

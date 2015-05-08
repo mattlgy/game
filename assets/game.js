@@ -12,40 +12,78 @@ var Game;
     Game.BLOCKS_PER_CHUNK = Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Y * Game.CHUNK_SIZE_Z;
     var Chunk = (function (_super) {
         __extends(Chunk, _super);
+        // geometry: THREE.Geometry
         function Chunk(_a) {
             var data = _a.data, x = _a.x, z = _a.z;
             _super.call(this);
             this.blocks = [];
-            this.x = 0;
-            this.z = 0;
+            this.matrixAutoUpdate = false;
             this.data = data;
             this.x = x;
             this.z = z;
             this.position.x = x * Game.CHUNK_SIZE_X;
             this.position.z = z * Game.CHUNK_SIZE_Z;
+            this.updateMatrix();
         }
         Chunk.prototype.getBlock = function (x, y, z) {
             x = Math.floor(x);
             z = Math.floor(z);
             y = Math.floor(y);
-            // var i = z + x * CHUNK_SIZE_X + y * CHUNK_SIZE_Y
-            // var i = z + CHUNK_SIZE_X * (x + CHUNK_SIZE_Y * y)
             var i = z + (x * Game.CHUNK_SIZE_X) + (y * Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Z);
             return this.blocks[i]; // this.data[i] != undefined ? this.data[i] : null
         };
         Chunk.prototype.getBlockWorldCoords = function (x, y, z) {
-            return this.getBlock(x % Game.CHUNK_SIZE_X, y, z % Game.CHUNK_SIZE_Z);
+            x = x % Game.CHUNK_SIZE_X;
+            x = (x + Game.CHUNK_SIZE_X) % Game.CHUNK_SIZE_X;
+            z = z % Game.CHUNK_SIZE_Z;
+            z = (z + Game.CHUNK_SIZE_Z) % Game.CHUNK_SIZE_Z;
+            return this.getBlock(x, y, z);
         };
-        Chunk.prototype.render = function () {
+        Chunk.prototype.build = function () {
             var x = 0;
             var y = 0;
             var z = 0;
             var i = 0;
             var b;
+            var m;
+            var geometry = new THREE.Geometry();
+            this.mesh = new THREE.Mesh(geometry, Blocks.Base.material);
+            // this.mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([
+            //   Blocks.Base.material,
+            //   Blocks.Base.material,
+            //   Blocks.Base.material,
+            //   Blocks.Base.material,
+            //   Blocks.Base.material,
+            //   Blocks.Base.material,
+            //
+            //   Blocks.One.material,
+            //   Blocks.One.material,
+            //   Blocks.One.material,
+            //   Blocks.One.material,
+            //   Blocks.One.material,
+            //   Blocks.One.material,
+            //
+            //   Blocks.Two.material,
+            //   Blocks.Two.material,
+            //   Blocks.Two.material,
+            //   Blocks.Two.material,
+            //   Blocks.Two.material,
+            //   Blocks.Two.material,
+            // ]))
+            this.add(this.mesh);
+            // this.updateMatrix()
             while (i < Game.BLOCKS_PER_CHUNK) {
                 if (this.data[i]) {
-                    b = new Blocks.Base({ x: x, y: y, z: z });
-                    this.add(b);
+                    if (this.data[i] === 1)
+                        b = new Blocks.Base({ x: x, y: y, z: z });
+                    else if (this.data[i] == 2)
+                        b = new Blocks.One({ x: x, y: y, z: z });
+                    else
+                        b = new Blocks.Two({ x: x, y: y, z: z });
+                    // this.add(b)
+                    // m = b.mesh.geometry.clone()
+                    // m.applyMatrix(b.matrix)
+                    this.mesh.geometry.merge(b.mesh.geometry, b.matrix, (this.data[i] - 1) * 6);
                     this.blocks[i] = b;
                 }
                 i++;
@@ -474,6 +512,40 @@ _worldData[8] = [
     0, 0, 0, 0,
     0, 0, 0, 0,
 ];
+_worldData[9] = [
+    2, 2, 2, 2,
+    2, 3, 3, 2,
+    2, 3, 3, 2,
+    2, 2, 2, 2,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+];
 var Blocks;
 (function (Blocks) {
     var Base = (function (_super) {
@@ -481,11 +553,14 @@ var Blocks;
         function Base(_a) {
             var x = _a.x, y = _a.y, z = _a.z;
             _super.call(this);
+            this.solid = true;
+            this.matrixAutoUpdate = false;
             this.mesh = this.makeMesh();
             this.position.x = x + 0.5;
             this.position.z = z + 0.5;
             this.position.y = y;
             this.add(this.mesh);
+            this.updateMatrix();
         }
         Base.prototype.makeMesh = function () {
             // hack to get the curent class's static geometry and material
@@ -497,6 +572,30 @@ var Blocks;
         return Base;
     })(THREE.Object3D);
     Blocks.Base = Base;
+})(Blocks || (Blocks = {}));
+var Blocks;
+(function (Blocks) {
+    var One = (function (_super) {
+        __extends(One, _super);
+        function One() {
+            _super.apply(this, arguments);
+        }
+        One.material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        return One;
+    })(Blocks.Base);
+    Blocks.One = One;
+})(Blocks || (Blocks = {}));
+var Blocks;
+(function (Blocks) {
+    var Two = (function (_super) {
+        __extends(Two, _super);
+        function Two() {
+            _super.apply(this, arguments);
+        }
+        Two.material = new THREE.MeshLambertMaterial({ color: 0x0000ff });
+        return Two;
+    })(Blocks.Base);
+    Blocks.Two = Two;
 })(Blocks || (Blocks = {}));
 // var dxp = new THREE.Vector3(1, 0, 0)
 // var dxn = new THREE.Vector3(-1, 0, 0)
@@ -758,26 +857,26 @@ var Entities;
 /// <reference path="./game/index"/>
 /// <reference path="./blocks/index"/>
 /// <reference path="./entities/index"/>
-var websocket = new WebSocket('ws://localhost:12345/echo');
-websocket.binaryType = "arraybuffer";
-websocket.onopen = function (event) {
-    var buffer = new ArrayBuffer(8);
-    var arr = new Int32Array(buffer);
-    arr[0] = 13;
-    arr[1] = 42;
-    websocket.send(arr);
-};
-websocket.onmessage = function (event) {
-    console.log(event);
-    console.log(event.data);
-    console.log(new Int32Array(event.data));
-};
+// var websocket = new WebSocket('ws://localhost:12345/echo')
+// websocket.binaryType = "arraybuffer"
+// websocket.onopen = function(event) {
+//     var buffer = new ArrayBuffer(8)
+//     var arr = new Int32Array(buffer)
+//     arr[0] = 13
+//     arr[1] = 42
+//     websocket.send(arr)
+// }
+// websocket.onmessage = function(event) {
+//     console.log(event)
+//     console.log(event.data)
+//     console.log(new Int32Array(event.data))
+// }
 Game.getPointerLock();
 var CHUNK_SIZE_X = 4;
 var CHUNK_SIZE_Y = 8;
 var CHUNK_SIZE_Z = 4;
 var BLOCKS_PER_CHUNK = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
-var LOAD_RAIDUS = 3;
+var LOAD_RAIDUS = 15;
 var scene = new THREE.Scene();
 var world = new Game.World();
 // window.world = world
@@ -808,7 +907,7 @@ function loadChunks() {
             if (!c) {
                 c = world.newChunk(x, z, getChunkData(x, z));
                 scene.add(c);
-                c.render();
+                c.build();
             }
             z++;
         }
@@ -817,7 +916,7 @@ function loadChunks() {
     }
 }
 function getChunkData(x, z) {
-    return Game.worldData[5];
+    return Game.worldData[9];
 }
 var i = 0;
 var x = 0;
@@ -825,8 +924,8 @@ var z = 0;
 var chunk;
 while (i < 9) {
     chunk = world.newChunk(x, z, Game.worldData[i]);
+    chunk.build();
     scene.add(chunk);
-    chunk.render();
     i++;
     x++;
     if (x >= 3) {

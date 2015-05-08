@@ -11,10 +11,12 @@ var Blocks;
         function Base(_a) {
             var x = _a.x, y = _a.y, z = _a.z;
             _super.call(this);
+            this.matrixAutoUpdate = false;
             this.mesh = this.makeMesh();
             this.position.x = x + 0.5;
             this.position.z = z + 0.5;
             this.position.y = y;
+            this.updateMatrix();
             this.add(this.mesh);
         }
         Base.prototype.makeMesh = function () {
