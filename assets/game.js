@@ -1,3 +1,106 @@
+var Mesher;
+(function (Mesher) {
+    // var Greedy = (function() {
+    //Cache buffer internally
+    var mask = new Int32Array(4096);
+    // return function(volume, dims) {
+    function Greedy(volume, dims) {
+        function f(i, j, k) {
+            return volume[i + dims[0] * (j + dims[1] * k)];
+        }
+        //Sweep over 3-axes
+        var vertices = [], faces = [];
+        for (var d = 0; d < 3; ++d) {
+            var i, j, k, l, w, h;
+            var u = (d + 1) % 3;
+            var v = (d + 2) % 3;
+            var x = [0, 0, 0];
+            var q = [0, 0, 0];
+            if (mask.length < dims[u] * dims[v]) {
+                mask = new Int32Array(dims[u] * dims[v]);
+            }
+            q[d] = 1;
+            for (x[d] = -1; x[d] < dims[d];) {
+                //Compute mask
+                var n = 0;
+                for (x[v] = 0; x[v] < dims[v]; ++x[v])
+                    for (x[u] = 0; x[u] < dims[u]; ++x[u], ++n) {
+                        var a = (0 <= x[d] ? f(x[0], x[1], x[2]) : 0), b = (x[d] < dims[d] - 1 ? f(x[0] + q[0], x[1] + q[1], x[2] + q[2]) : 0);
+                        if ((!!a) === (!!b)) {
+                            mask[n] = 0;
+                        }
+                        else if (!!a) {
+                            mask[n] = a;
+                        }
+                        else {
+                            mask[n] = -b;
+                        }
+                    }
+                //Increment x[d]
+                ++x[d];
+                //Generate mesh for mask using lexicographic ordering
+                n = 0;
+                for (j = 0; j < dims[v]; ++j)
+                    for (i = 0; i < dims[u];) {
+                        var c = mask[n];
+                        if (!!c) {
+                            //Compute width
+                            for (w = 1; c === mask[n + w] && i + w < dims[u]; ++w) {
+                            }
+                            //Compute height (this is slightly awkward
+                            var done = false;
+                            for (h = 1; j + h < dims[v]; ++h) {
+                                for (k = 0; k < w; ++k) {
+                                    if (c !== mask[n + k + h * dims[u]]) {
+                                        done = true;
+                                        break;
+                                    }
+                                }
+                                if (done) {
+                                    break;
+                                }
+                            }
+                            //Add quad
+                            x[u] = i;
+                            x[v] = j;
+                            var du = [0, 0, 0], dv = [0, 0, 0];
+                            if (c > 0) {
+                                dv[v] = h;
+                                du[u] = w;
+                            }
+                            else {
+                                c = -c;
+                                du[v] = h;
+                                dv[u] = w;
+                            }
+                            var vertex_count = vertices.length;
+                            vertices.push([x[0], x[1], x[2]]);
+                            vertices.push([x[0] + du[0], x[1] + du[1], x[2] + du[2]]);
+                            vertices.push([x[0] + du[0] + dv[0], x[1] + du[1] + dv[1], x[2] + du[2] + dv[2]]);
+                            vertices.push([x[0] + dv[0], x[1] + dv[1], x[2] + dv[2]]);
+                            //   faces.push([vertex_count, vertex_count+1, vertex_count+2, vertex_count+3, c]);
+                            faces.push([vertex_count + 0, vertex_count + 1, vertex_count + 2, c]);
+                            faces.push([vertex_count + 0, vertex_count + 2, vertex_count + 3, c]);
+                            //Zero-out mask
+                            for (l = 0; l < h; ++l)
+                                for (k = 0; k < w; ++k) {
+                                    mask[n + k + l * dims[u]] = 0;
+                                }
+                            //Increment counters and continue
+                            i += w;
+                            n += w;
+                        }
+                        else {
+                            ++i;
+                            ++n;
+                        }
+                    }
+            }
+        }
+        return { vertices: vertices, faces: faces };
+    }
+    Mesher.Greedy = Greedy;
+})(Mesher || (Mesher = {}));
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -29,7 +132,8 @@ var Game;
             x = Math.floor(x);
             z = Math.floor(z);
             y = Math.floor(y);
-            var i = z + (x * Game.CHUNK_SIZE_X) + (y * Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Z);
+            var i = x + (y * Game.CHUNK_SIZE_Y) + (z * Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Y);
+            // var i = z + (x * CHUNK_SIZE_X) + (y * CHUNK_SIZE_X * CHUNK_SIZE_Z)
             return this.blocks[i]; // this.data[i] != undefined ? this.data[i] : null
         };
         Chunk.prototype.getBlockWorldCoords = function (x, y, z) {
@@ -47,7 +151,7 @@ var Game;
             var b;
             var m;
             var geometry = new THREE.Geometry();
-            this.mesh = new THREE.Mesh(geometry, Blocks.Base.material);
+            // this.mesh = new THREE.Mesh(geometry, Blocks.Base.material)
             // this.mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([
             //   Blocks.Base.material,
             //   Blocks.Base.material,
@@ -70,8 +174,42 @@ var Game;
             //   Blocks.Two.material,
             //   Blocks.Two.material,
             // ]))
-            this.add(this.mesh);
+            // this.add(this.mesh)
             // this.updateMatrix()
+            var merged = [];
+            merged.concat.apply(merged, this.data);
+            console.log(Mesher.Greedy(this.data, [Game.CHUNK_SIZE_X, Game.CHUNK_SIZE_Y, Game.CHUNK_SIZE_Z]));
+            var result = Mesher.Greedy(this.data, [Game.CHUNK_SIZE_X, Game.CHUNK_SIZE_Y, Game.CHUNK_SIZE_Z]);
+            geometry.vertices.length = 0;
+            geometry.faces.length = 0;
+            for (var i = 0; i < result.vertices.length; ++i) {
+                var q = result.vertices[i];
+                geometry.vertices.push(new THREE.Vector3(q[0], q[1], q[2]));
+            }
+            for (var i = 0; i < result.faces.length; ++i) {
+                var q = result.faces[i];
+                var f = new THREE.Face3(q[0], q[1], q[2]);
+                f.color = new THREE.Color(0xffaa00); //new THREE.Color(q[3]);
+                // f.vertexColors = [f.color, f.color, f.color];
+                geometry.faces.push(f);
+            }
+            geometry.computeFaceNormals();
+            geometry.verticesNeedUpdate = true;
+            geometry.elementsNeedUpdate = true;
+            geometry.normalsNeedUpdate = true;
+            geometry.computeBoundingBox();
+            geometry.computeBoundingSphere();
+            var material = new THREE.MeshBasicMaterial({
+                vertexColors: THREE.VertexColors
+            });
+            this.mesh = new THREE.Mesh(geometry, material);
+            this.add(this.mesh);
+            var x = 0;
+            var y = 0;
+            var z = 0;
+            var i = 0;
+            var b;
+            var m;
             while (i < Game.BLOCKS_PER_CHUNK) {
                 if (this.data[i]) {
                     if (this.data[i] === 1)
@@ -80,10 +218,6 @@ var Game;
                         b = new Blocks.One({ x: x, y: y, z: z });
                     else
                         b = new Blocks.Two({ x: x, y: y, z: z });
-                    // this.add(b)
-                    // m = b.mesh.geometry.clone()
-                    // m.applyMatrix(b.matrix)
-                    this.mesh.geometry.merge(b.mesh.geometry, b.matrix, (this.data[i] - 1) * 6);
                     this.blocks[i] = b;
                 }
                 i++;
@@ -97,6 +231,33 @@ var Game;
                     y++;
                 }
             }
+            // while (i < BLOCKS_PER_CHUNK) {
+            //     if (this.data[i]) {
+            //         if (this.data[i] === 1)
+            //             b = new Blocks.Base({ x, y, z })
+            //         else if (this.data[i] == 2)
+            //             b = new Blocks.One({ x, y, z })
+            //         else
+            //             b = new Blocks.Two({ x, y, z })
+            //
+            //         // this.add(b)
+            //         // m = b.mesh.geometry.clone()
+            //         // m.applyMatrix(b.matrix)
+            //         this.mesh.geometry.merge(b.mesh.geometry, b.matrix, (this.data[i] - 1) * 6)
+            //         this.blocks[i] = b
+            //     }
+            //     i++
+            //
+            //     z++
+            //     if (z >= CHUNK_SIZE_Z) {
+            //         z = 0
+            //         x++
+            //     }
+            //     if (x >= CHUNK_SIZE_X) {
+            //         x = 0
+            //         y++
+            //     }
+            // }
         };
         return Chunk;
     })(THREE.Object3D);
@@ -854,6 +1015,7 @@ var Entities;
     Entities.Player = Player;
 })(Entities || (Entities = {}));
 /// <reference path="./typings/tsd.d.ts"/>
+/// <reference path="./lib/index"/>
 /// <reference path="./game/index"/>
 /// <reference path="./blocks/index"/>
 /// <reference path="./entities/index"/>
@@ -876,7 +1038,7 @@ var CHUNK_SIZE_X = 4;
 var CHUNK_SIZE_Y = 8;
 var CHUNK_SIZE_Z = 4;
 var BLOCKS_PER_CHUNK = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
-var LOAD_RAIDUS = 15;
+var LOAD_RAIDUS = 1;
 var scene = new THREE.Scene();
 var world = new Game.World();
 // window.world = world
@@ -899,8 +1061,8 @@ function loadChunks() {
     var zMin = z - LOAD_RAIDUS;
     var xMax = x + LOAD_RAIDUS;
     var zMax = z + LOAD_RAIDUS;
-    x = xMin;
-    z = zMin;
+    var x = xMin;
+    var z = zMin;
     while (x <= xMax) {
         while (z <= zMax) {
             c = world.getChunk(x, z);
@@ -915,24 +1077,56 @@ function loadChunks() {
         x++;
     }
 }
-function getChunkData(x, z) {
-    return Game.worldData[9];
-}
-var i = 0;
-var x = 0;
-var z = 0;
-var chunk;
-while (i < 9) {
-    chunk = world.newChunk(x, z, Game.worldData[i]);
-    chunk.build();
-    scene.add(chunk);
-    i++;
-    x++;
-    if (x >= 3) {
-        x = 0;
-        z++;
+function getChunkData(xC, zC) {
+    // return Game.worldData[5]
+    var data = [];
+    var i = 0;
+    var m = Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Y * Game.CHUNK_SIZE_Z;
+    var x = 0;
+    var y = 0;
+    var z = 0;
+    while (i < m) {
+        if (y === 0) {
+            data[i] = 1;
+        }
+        else {
+            data[i] = 0;
+        }
+        i++;
+        x++;
+        if (x >= Game.CHUNK_SIZE_X) {
+            x = 0;
+            y++;
+        }
+        if (y >= Game.CHUNK_SIZE_Y) {
+            y = 0;
+            z++;
+        }
+        if (z >= Game.CHUNK_SIZE_Z) {
+            z = 0;
+        }
     }
+    return data;
 }
+// var i = 0
+// var x = 0
+// var z = 0
+// var chunk
+// while (i < 9) {
+//     chunk = world.newChunk(x, z, Game.worldData[i])
+//     chunk.build()
+//     scene.add(chunk)
+//
+//     i++
+//     x++
+//     if (x >= 3) {
+//         x = 0
+//         z++
+//     }
+// }
+var chunk = world.newChunk(0, 0, getChunkData(0, 0));
+chunk.build();
+scene.add(chunk);
 var past = performance.now();
 function onFrame(timestamp) {
     var now = performance.now();

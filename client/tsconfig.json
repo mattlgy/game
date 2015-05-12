@@ -22,6 +22,9 @@
         "./game/index.d.ts",
         "./game/world-data.ts",
         "./game/world.ts",
+        "./lib/index.d.ts",
+        "./lib/meshing/greedy.ts",
+        "./lib/meshing/index.d.ts",
         "./typings/threejs/three.d.ts",
         "./typings/tsd.d.ts"
     ]

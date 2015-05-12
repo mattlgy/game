@@ -1,4 +1,5 @@
 /// <reference path="./typings/tsd.d.ts"/>
+/// <reference path="./lib/index"/>
 /// <reference path="./game/index"/>
 /// <reference path="./blocks/index"/>
 /// <reference path="./entities/index"/>
@@ -26,7 +27,7 @@ const CHUNK_SIZE_X = 4
 const CHUNK_SIZE_Y = 8
 const CHUNK_SIZE_Z = 4
 const BLOCKS_PER_CHUNK = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z
-const LOAD_RAIDUS = 15
+const LOAD_RAIDUS = 1
 
 var scene = new THREE.Scene()
 var world = new Game.World()
@@ -56,8 +57,8 @@ function loadChunks() {
     var xMax = x + LOAD_RAIDUS
     var zMax = z + LOAD_RAIDUS
 
-    x = xMin
-    z = zMin
+    var x = xMin
+    var z = zMin
     while (x <= xMax) {
         while (z <= zMax) {
             c = world.getChunk(x, z)
@@ -73,26 +74,60 @@ function loadChunks() {
     }
 }
 
-function getChunkData(x, z) {
-    return Game.worldData[9]
-}
+function getChunkData(xC, zC) {
+    // return Game.worldData[5]
+    var data = []
+    var i = 0
+    var m = Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Y * Game.CHUNK_SIZE_Z
+    var x = 0
+    var y = 0
+    var z = 0
 
-var i = 0
-var x = 0
-var z = 0
-var chunk
-while (i < 9) {
-    chunk = world.newChunk(x, z, Game.worldData[i])
-    chunk.build()
-    scene.add(chunk)
+    while (i < m) {
+        if (y === 0){
+            data[i] = 1
+        } else {
+            data[i] = 0
+        }
 
-    i++
-    x++
-    if (x >= 3) {
-        x = 0
-        z++
+        i++
+        x++
+        if (x >= Game.CHUNK_SIZE_X) {
+            x = 0
+            y++
+        }
+        if (y >= Game.CHUNK_SIZE_Y) {
+            y = 0
+            z++
+        }
+        if (z >= Game.CHUNK_SIZE_Z) {
+            z = 0
+        }
     }
+
+    return data
 }
+
+// var i = 0
+// var x = 0
+// var z = 0
+// var chunk
+// while (i < 9) {
+//     chunk = world.newChunk(x, z, Game.worldData[i])
+//     chunk.build()
+//     scene.add(chunk)
+//
+//     i++
+//     x++
+//     if (x >= 3) {
+//         x = 0
+//         z++
+//     }
+// }
+
+var chunk = world.newChunk(0, 0, getChunkData(0, 0))
+chunk.build()
+scene.add(chunk)
 
 var past = performance.now()
 function onFrame(timestamp) {
