@@ -36,7 +36,8 @@ module Game {
             z = Math.floor(z)
             y = Math.floor(y)
 
-            var i = x + (y * CHUNK_SIZE_Y) + (z * CHUNK_SIZE_X * CHUNK_SIZE_Y)
+            var i = x + (y * CHUNK_SIZE_X) + (z * CHUNK_SIZE_X * CHUNK_SIZE_Y)
+            // debugger
             // var i = z + (x * CHUNK_SIZE_X) + (y * CHUNK_SIZE_X * CHUNK_SIZE_Z)
             return this.blocks[i] // this.data[i] != undefined ? this.data[i] : null
         }
@@ -86,9 +87,9 @@ module Game {
             // this.add(this.mesh)
             // this.updateMatrix()
 
-            var merged = []
-            merged.concat.apply(merged, this.data)
-            console.log(Mesher.Greedy(this.data, [CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z]))
+            // var merged = []
+            // merged.concat.apply(merged, this.data)
+            // console.log(Mesher.Greedy(this.data, [CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z]))
 
             var result = Mesher.Greedy(this.data, [CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z])
             geometry.vertices.length = 0;
@@ -137,16 +138,19 @@ module Game {
 
                     this.blocks[i] = b
                 }
-                i++
 
-                z++
-                if (z >= CHUNK_SIZE_Z) {
-                    z = 0
-                    x++
-                }
-                if (x >= CHUNK_SIZE_X) {
+                i++
+                x++
+                if (x >= Game.CHUNK_SIZE_X) {
                     x = 0
                     y++
+                }
+                if (y >= Game.CHUNK_SIZE_Y) {
+                    y = 0
+                    z++
+                }
+                if (z >= Game.CHUNK_SIZE_Z) {
+                    z = 0
                 }
             }
 

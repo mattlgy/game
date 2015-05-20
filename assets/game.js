@@ -132,7 +132,8 @@ var Game;
             x = Math.floor(x);
             z = Math.floor(z);
             y = Math.floor(y);
-            var i = x + (y * Game.CHUNK_SIZE_Y) + (z * Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Y);
+            var i = x + (y * Game.CHUNK_SIZE_X) + (z * Game.CHUNK_SIZE_X * Game.CHUNK_SIZE_Y);
+            // debugger
             // var i = z + (x * CHUNK_SIZE_X) + (y * CHUNK_SIZE_X * CHUNK_SIZE_Z)
             return this.blocks[i]; // this.data[i] != undefined ? this.data[i] : null
         };
@@ -176,9 +177,9 @@ var Game;
             // ]))
             // this.add(this.mesh)
             // this.updateMatrix()
-            var merged = [];
-            merged.concat.apply(merged, this.data);
-            console.log(Mesher.Greedy(this.data, [Game.CHUNK_SIZE_X, Game.CHUNK_SIZE_Y, Game.CHUNK_SIZE_Z]));
+            // var merged = []
+            // merged.concat.apply(merged, this.data)
+            // console.log(Mesher.Greedy(this.data, [CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z]))
             var result = Mesher.Greedy(this.data, [Game.CHUNK_SIZE_X, Game.CHUNK_SIZE_Y, Game.CHUNK_SIZE_Z]);
             geometry.vertices.length = 0;
             geometry.faces.length = 0;
@@ -221,14 +222,17 @@ var Game;
                     this.blocks[i] = b;
                 }
                 i++;
-                z++;
-                if (z >= Game.CHUNK_SIZE_Z) {
-                    z = 0;
-                    x++;
-                }
+                x++;
                 if (x >= Game.CHUNK_SIZE_X) {
                     x = 0;
                     y++;
+                }
+                if (y >= Game.CHUNK_SIZE_Y) {
+                    y = 0;
+                    z++;
+                }
+                if (z >= Game.CHUNK_SIZE_Z) {
+                    z = 0;
                 }
             }
             // while (i < BLOCKS_PER_CHUNK) {
@@ -1105,6 +1109,8 @@ function getChunkData(xC, zC) {
         if (z >= Game.CHUNK_SIZE_Z) {
             z = 0;
         }
+        if (i === 106)
+            console.log(x, y, z);
     }
     return data;
 }

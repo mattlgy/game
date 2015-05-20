@@ -103,6 +103,8 @@ function getChunkData(xC, zC) {
         if (z >= Game.CHUNK_SIZE_Z) {
             z = 0
         }
+
+        if (i === 106) console.log(x, y, z)
     }
 
     return data
